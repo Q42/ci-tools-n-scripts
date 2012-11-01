@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="suffix android versionname" xmlns="http://nant.sf.net/release/0.85/nant.xsd" default="append-versionname-string">
+  <description>
+    Mark van Straten - Q42:
+		This nant script appends the given string to the @android:VersionName in the given (or default) AndroidManifest.xml
+
+	Requirements:
+		- nant 0.85 >=
+
+	Example usage:
+		nant -buildfile:AndroidAppendVersionName.build -D:versionname.suffix=foo [-D:android.manifest.filenamepath=c:\path\to\AndroidManifest.xml]
+  </description>
+  
+  <!-- propertys to pass (required) -->  
+  <property name="versionname.suffix" value="" unless="${property::exists('versionname.suffix')}" />
+  
+  <!-- optional if not in current working dir -->
+  <property name="android.manifest.filenamepath" value="AndroidManifest.xml" unless="${property::exists('android.manifest.filenamepath')}" />
+  
+  
+  <target name="append-versionname-string" description="append given string to versionname attrib">
+	<!-- read current value -->
+	<xmlpeek file="${android.manifest.filenamepath}" property="versionname.prefix" xpath="manifest/@android:versionName">
+		<namespaces>
+			<namespace prefix="android" uri="http://schemas.android.com/apk/res/android" />
+		</namespaces>
+	</xmlpeek>
+  
+	<!-- append suffix -->
+	<xmlpoke file="${android.manifest.filenamepath}" value="${versionname.prefix} ${versionname.suffix}" xpath="manifest/@android:versionName">
+		<namespaces>
+			<namespace prefix="android" uri="http://schemas.android.com/apk/res/android" />
+		</namespaces>
+	</xmlpoke>
+  </target>
+</project>
