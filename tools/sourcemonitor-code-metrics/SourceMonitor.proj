@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Analyze" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- arguments to be filled in from command line -->
+    <SourceMonitorDir Condition="'$(SourceMonitorDir)'== ''">..</SourceMonitorDir>
+    <SourceProjectType Condition="'$(SourceProjectType)'== ''">C#</SourceProjectType>
+    
+    <CurrentDir>$(teamcity_build_workingDir)\</CurrentDir>
+    <CurrentDir Condition="'$(teamcity_build_workingDir)' == ''">$(MSBuildProjectDirectory)\</CurrentDir>
+    
+    
+    <!-- the rest ;-) -->
+    <SourceMonitorCommandFilename>SourceMonitorCommands.xml</SourceMonitorCommandFilename>
+    <SourceMonitorText> <![CDATA[
+      <?xml version="1.0" encoding="UTF-8" ?>
+      <sourcemonitor_commands>
+        <write_log>true</write_log>
+        <command>
+          <project_file>MyProject.smp</project_file>
+          <checkpoint_name>Baseline</checkpoint_name>
+          <project_language>$(SourceProjectType)</project_language>
+          <source_directory>$(CurrentDir)$(SourceMonitorDir)</source_directory>
+          <!--<include_subdirectories>true</include_subdirectories>          -->
+          <!-- conform specs sourcemonitor: exclude_subdirectories = true? dan wordt alles gedaan behalve hetgeen vermeld (obj en bin) -->
+         <source_subdirectory_list>
+             <exclude_subdirectories>true</exclude_subdirectories>
+             <source_subtree>bin\</source_subtree>
+             <source_subdirectory>obj\</source_subdirectory>
+         </source_subdirectory_list>         
+          <parse_utf8_files>True</parse_utf8_files>
+          <ignore_headers_footers>true</ignore_headers_footers>
+          <export>
+            <export_file>SourceMonitor-details.xml</export_file>
+            <export_type>2</export_type>
+          </export>
+        </command>
+        <command>
+            <project_file>MyProject.smp</project_file>
+          <checkpoint_name>Baseline</checkpoint_name>
+          <export>
+          <export_file>SourceMonitor-summary.xml</export_file>
+          <export_type>1</export_type>
+        </export>
+        </command>
+      </sourcemonitor_commands>]]></SourceMonitorText>        
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\MSBuildCommunityTasks</MSBuildCommunityTasksPath>      
+  </PropertyGroup>
+  
+  <Import Project="$(MSBuildProjectDirectory)\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"/>
+ 
+  <Target Name="Analyze">
+    <WriteLinesToFile File="$(SourceMonitorCommandFilename)" Lines="$(SourceMonitorText)" Overwrite="true" />  
+   
+    <Exec Command="SourceMonitor.exe /C $(SourceMonitorCommandFilename)"/>
+    <XmlRead XPath="//*/metric[@id='M0']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="NumberOfLines" />
+    </XmlRead>
+    <Message Text="##teamcity[buildStatisticValue key='NumberOfLines' value='$(NumberOfLines)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="NumberOfLines: $(NumberOfLines)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>    
+
+    <!-- comments lines are lines with /**/ or // in it -->
+    <XmlRead XPath="//*/metric[@id='M2']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="CommentsPercentage" />
+    </XmlRead>    
+    <PropertyGroup>
+      <CommentsLines>$([System.Math]::Round($([MSBuild]::Multiply($(NumberOfLines),$([MSBuild]::Divide($(CommentsPercentage.Replace(",",".")),100))))))</CommentsLines>
+    </PropertyGroup>    
+    <Message Text="##teamcity[buildStatisticValue key='CommentsLines' value='$(CommentsLines)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="CommentsLines: $(CommentsLines)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>        
+
+    <!-- documentation lines are starting with ///  (in c#)-->
+    <XmlRead XPath="//*/metric[@id='M3']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="DocumentationPercentage" />
+    </XmlRead>    
+    <PropertyGroup>
+      <DocumentationLines>$([System.Math]::Round($([MSBuild]::Multiply($(NumberOfLines),$([MSBuild]::Divide($(DocumentationPercentage.Replace(",",".")),100))))))</DocumentationLines>
+    </PropertyGroup>    
+    <Message Text="##teamcity[buildStatisticValue key='DocumentationLines' value='$(DocumentationLines)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="DocumentationLines: $(DocumentationLines)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>        
+    
+    <XmlRead XPath="//*/metric[@id='M5']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="MethodsPerClass" />
+    </XmlRead>
+    <PropertyGroup>
+      <MethodsPerClass>$([System.Math]::Round($(MethodsPerClass.Replace(",","."))))</MethodsPerClass>
+    </PropertyGroup>
+    <Message Text="##teamcity[buildStatisticValue key='MethodsPerClass' value='$(MethodsPerClass)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="MethodsPerClass: $(MethodsPerClass)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>        
+   
+    <XmlRead XPath="//*/metric[@id='M7']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="StatementsPerMethod" />
+    </XmlRead>
+    <PropertyGroup>
+      <StatementsPerMethod>$([System.Math]::Round($(StatementsPerMethod.Replace(",","."))))</StatementsPerMethod>
+    </PropertyGroup>
+    <Message Text="##teamcity[buildStatisticValue key='StatementsPerMethod' value='$(StatementsPerMethod)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="StatementsPerMethod: $(StatementsPerMethod)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>
+
+    <XmlRead XPath="//*/metric[@id='M10']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="MaxComplexity" />
+    </XmlRead>
+    <Message Text="##teamcity[buildStatisticValue key='MaxComplexity' value='$(MaxComplexity)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="MaxComplexity: $(MaxComplexity)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>            
+
+
+    <XmlRead XPath="//*/metric[@id='M14']" XmlFileName="SourceMonitor-summary.xml">
+      <Output TaskParameter="Value" PropertyName="AvgComplexity" />
+    </XmlRead>
+    <PropertyGroup>
+    <AvgComplexity>$([System.Math]::Round($(AvgComplexity.Replace(",","."))))</AvgComplexity>
+    </PropertyGroup>
+    <Message Text="##teamcity[buildStatisticValue key='AvgComplexity' value='$(AvgComplexity)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="AvgComplexity: $(AvgComplexity)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>                
+    
+    <!-- now create a readable html file of the details xml and make it available as artifact in teamcity -->
+    <XslTransformation
+      OutputPaths="sourcemonitor-details.html"
+      XmlInputPaths="SourceMonitor-details.xml"
+      XslInputPath="Contributions\van_de_Burgt\SourceMonitor.xslt" />
+    <Message Text="##teamcity[publishArtifacts '$(CurrentDir)sourcemonitor-details.html']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="Generated details HTML: $(CurrentDir)sourcemonitor-details.html" Condition=" '$(TEAMCITY_VERSION)' == '' "/>                
+  </Target>
+</Project>

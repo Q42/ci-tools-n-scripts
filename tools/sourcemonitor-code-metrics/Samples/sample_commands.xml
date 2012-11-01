@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- =======================================================================
+ Examples of typical SourceMonitor command line script commands.
+======================================================================== -->
+
+<sourcemonitor_commands>
+
+    <!-- ===================================================================
+     The write_log element value is used for execution of commands in this
+     file, not the log errors flag set in SourceMonitor's options dialog.
+     If this element is missing, command progress and errors will be written
+     to the SourceMonitor log file.
+     =================================================================== -->
+
+    <write_log>true</write_log>
+
+    <!-- ===============================================================
+      This command is typical for a project that does not yet exist.
+      The file name becomes the project name of the new project.
+    ================================================================ -->
+
+    <command>
+
+        <project_file>C:\Projects\MyProject\src\MyProject.smp</project_file>
+
+        <!-- ===============================================================
+         For a new project, you must specify the language and the location
+         of the source code. You can provide an absolute path for the project
+         file (as in this example) or you can provide a relative path. In the
+         latter case, the path will be resolved relative to the current
+         working directory. If you want to specify the project file relative
+         to the location of your script file, you can use element
+         <project_file_wrt_script> instead of <project_file>.
+
+         You may also set the Modified Complexity option.
+        ================================================================ -->
+
+        <project_language>C++</project_language>
+        <modified_complexity>true</modified_complexity>
+        <source_directory>C:\Projects\MyProject\src</source_directory>
+
+        <!-- ===============================================================
+         If the optional flag element, "exclude_subdirectories", is "true"
+         then the listed subdirectories are NOT.to be included in the
+         project (all other subdirectories WILL be included). If this flag
+         element is missing or "false" then only the subdirectories listed
+         will be included in the project. The "source_subtree" element
+         identifies the parent of a subdirectory tree, all of which will be
+         included/excluded. Element "source_subdirectory" applies to a
+         single directory and not its children (if any).
+        ================================================================ -->
+
+        <source_subdirectory_list>
+            <exclude_subdirectories>true</exclude_subdirectories>
+            <source_subtree>bin\</source_subtree>
+            <source_subdirectory>obj\</source_subdirectory>
+        </source_subdirectory_list>
+
+        <parse_utf8_files>True</parse_utf8_files>
+      
+        <checkpoint_name>Baseline</checkpoint_name>
+        <checkpoint_date>1999-08-31T12:24:56</checkpoint_date>
+
+        <!-- ===============================================================
+         For either a new or existing project, you can override the default
+         or current file extensions (set in the Options dialog) for source
+         files to be included in a new checkpoint. All files with the
+         extensions you specify here will be included in the new checkpoint.
+        ================================================================ -->
+
+        <file_extensions>*.h,*.cpp</file_extensions>
+        <include_subdirectories>true</include_subdirectories>
+
+        <!-- ===============================================================
+         If you are creating a project that counts DOC comments separately, then you
+         can provide a number in the following element to specify the kind of
+         comments to ignore at the beginning and end of each source file:
+         1 => normal comments only
+         2 => DOC comments only
+         3 => both normal and DOC comments
+         For example,
+        ================================================================ -->
+         <ignore_headers_footers>2 DOC only</ignore_headers_footers>
+
+        <!-- ===============================================================
+         For projects that don't count DOC comments, just set this element to
+         true or false:
+        ================================================================ -->
+        <ignore_headers_footers>True</ignore_headers_footers>
+
+        <!-- ===============================================================
+         Export of metrics data is supported for a single checkpoint per
+         command (the one identified in the <checkpoint_name> tag or one that
+         is automatically created as explained below). Exported metrics data
+         is specified by the export type: "1" for the project summary as XML,
+         "2" for checkpoint details as XML, or "3" project details as CSV.
+         You specify the type with a number 1, 2 or 3 in the element's
+         contents. All other text is ignored. The following examples are
+         all valid specification of export type 2:
+           <export_type>2 (project details as XML)</export_type>
+           <export_type>Project details as XML: 2</export_type>
+           <export_type>2</export_type>
+        ================================================================ -->
+
+        <export>
+            <export_insert>xml-stylesheet type='text/xsl' href='SourceMonitor.xslt'</export_insert>
+            <export_file>C:\Projects\dump.xml</export_file>
+            <export_type>1 (project summary as XML)</export_type>
+        </export>
+
+        <!-- ===============================================================
+         When the </command> tag is encountered, the command specified above
+         is executed. In this sample command, the project and checkpoint are
+         created and the XML export file is generated.
+        ================================================================ -->
+
+    </command>
+
+    <!-- ===============================================================
+      This command is similar to the previous one, except that it uses
+      an XML file as the source of the code files to be included in each
+      checkpoint. If you include element <source_files_from_xml> then you
+      must not include element <source_directory>.
+    ================================================================ -->
+
+    <command>
+
+        <project_file>C:\Projects\MyProject\src\MyProject.smp</project_file>
+        <project_language>C++</project_language>
+        <modified_complexity>true</modified_complexity>
+        <source_directory>C:\Projects\MyProject\</source_directory>
+
+        <!-- ===============================================================
+         The following specification assumes you have one or more xml files
+         that contain the locations of the source code files you want to
+         include in your project's checkpoints. For this example, you would
+         need to have these two files:
+
+         1) C:\Projects\MyProject\MyFiles.xml
+
+            This file might contain something like this:
+            <project>
+               <files>
+                   <file>.\src\source_code1.cpp</file>
+                   <file>.\src\source_code2.cpp</file>
+                   <file>.\src\source_code3.cpp</file>
+                   <file>.\src\resource1.res</file>
+               </files>
+            </project>
+
+            Note that file resource1.res will not be included in checkpoints
+            because it has an invalid file name extension for this project's
+            language. In addition, any files that no longer exist will be
+            skipped.
+
+         2) C:\Projects\MyProject\Other\MyOtherFiles.xml
+
+            This file might contain something like this:
+
+            <my_project>
+               <header_files>
+                   <other_file name=".\..\src\include\source_code1.h/>
+                   <other_file name=".\..\src\include\source_code2.h/>
+                   <other_file name=".\..\src\include\source_code3.h/>
+               </header_files>
+            </my_project>
+
+            Note: all relative paths are resolved relative to the location of
+            the XML file.
+
+        ================================================================ -->
+
+        <source_files_from_xml>
+            <xml_base_directory>.\src\</xml_base_directory>
+            <xml_search_file>
+                <xml_file_path>.\MyFiles.xml</xml_file_path>
+                <xpath_location>//file</xpath_location>
+            </xml_search_file>
+            <xml_search_file>
+                <xml_file_path>.\Other\MyOtherFiles.xml</xml_file_path>
+                <xpath_location>other_file@file_name</xpath_location>
+            </xml_search_file>
+        <source_files_from_xml>
+
+        <parse_utf8_files>True</parse_utf8_files>
+      
+         <!-- ===============================================================
+         Export of metrics data is supported for a single checkpoint per
+         command (the one identified in the <checkpoint_name> tag or one that
+         is automatically created as explained below). Exported metrics data
+         is specified by the export type: "1" for the project summary as XML,
+         "2" for checkpoint details as XML, or "3" project details as CSV.
+         You specify the type with a number 1, 2 or 3 in the element's
+         contents. All other text is ignored. The following examples are
+         all valid specification of export type 2:
+           <export_type>2 (project details as XML)</export_type>
+           <export_type>Project details as XML: 2</export_type>
+           <export_type>2</export_type>
+        ================================================================ -->
+
+        <export>
+            <export_insert>xml-stylesheet type='text/xsl' href='SourceMonitor.xslt'</export_insert>
+            <export_file>C:\Projects\dump.xml</export_file>
+            <export_type>1 (project summary as XML)</export_type>
+        </export>
+
+        <!-- ===============================================================
+         When the </command> tag is encountered, the command specified above
+         is executed. In this sample command, the project and checkpoint are
+         created and the XML export file is generated.
+        ================================================================ -->
+
+    </command>
+
+    <!-- ===============================================================
+     This command is typical for the case where a project exists and you
+     want to create a new checkpoint and export its metrics.
+    ================================================================ -->
+
+    <command>
+
+        <project_file>C:\Projects\MyProject\src\MyProject.smp</project_file>
+
+        <!-- ===============================================================
+         If you do not specify a checkpoint name, a name will be created for
+         you in the form "CheckpointN" where N is the next higher number not
+         already present in an auto-generated checkpoint name in this
+         project.
+        ================================================================ -->
+
+        <export>
+            <export_file>C:\Projects\dump.xml</export_file>
+            <export_type>2 (checkpoint details as XML)</export_type>
+        </export>
+
+        <!-- ===============================================================
+          If you wish, you can delete the checkpoint you just created.
+        ================================================================ -->
+
+        <delete_checkpoint />
+
+        <!-- ===============================================================
+         When the </command> tag is encountered, the checkpoint is created,
+         the metrics for all files in the new checkpoint are exported as
+         XML, and then the new checkpoint is deleted from the project.
+         However, if any errors occur in the command's specification, an
+         error message will be logged (if logging is enabled) and the
+         execution of the command will be aborted.
+        ================================================================ -->
+
+    </command>
+
+    <!-- ===============================================================
+      This command is typical for the case where a project and
+      checkpoint both already exist, and all you want to do is export
+      the metrics for the checkpoint.
+    ================================================================ -->
+
+    <command>
+
+        <project_file>C:\Projects\MyProject\src\MyProject.smp</project_file>
+        <checkpoint_name>Alpha One</checkpoint_name>
+        <export>
+            <export_file>C:\Projects\dump.txt</export_file>
+            <export_type>3 (project details as CSV)</export_type>
+        </export>
+    </command>
+
+    <!-- ===============================================================
+      This command is typical for the case where a project already exists 
+      and you want to export all checkpoints in the project with percent
+      values and method metrics.
+    ================================================================ -->
+
+    <command>
+
+        <project_file>C:\Projects\MyProject\src\MyProject.smp</project_file>
+        <export>
+            <export_file>C:\Projects\dump.txt</export_file>
+            <export_type>2 (project details as XML)</export_type>
+            <export_option>Include method metrics: option 3</export_option>
+            <export_all_checkpoints />
+        </export>
+    </command>
+</sourcemonitor_commands>
