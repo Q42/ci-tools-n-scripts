@@ -27,7 +27,7 @@
 	</xmlpeek>
   
 	<!-- append suffix -->
-	<xmlpoke file="${android.manifest.filenamepath}" value="${versionname.prefix} ${versionname.suffix}" xpath="manifest/@android:versionName">
+	<xmlpoke file="${android.manifest.filenamepath}" value="${versionname.prefix}${versionname.suffix}" xpath="manifest/@android:versionName">
 		<namespaces>
 			<namespace prefix="android" uri="http://schemas.android.com/apk/res/android" />
 		</namespaces>
