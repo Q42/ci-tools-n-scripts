@@ -1,0 +1,3 @@
+http://stackoverflow.com/questions/2731365/running-msbuild-fails-to-read-sdktoolspath
+
+probleem wat we hadden was een project waarbij language resources waren gemaakt. Die worden na de compile slag 'gelinked' met een SDK tool AL.exe die niet kon worden gevonden. Er werd gerefereerd naar een v7.0a pad in de registry. Deze is aangepast met deze .reg files (zie ook stackoverflow)

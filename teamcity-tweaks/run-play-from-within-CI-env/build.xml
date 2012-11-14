@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<project name="TestResultsImporter" default="build">
+	
+	<!-- This Ant script helps TeamCity understand our tests by importing the TEST-{resultname}.xml files (JUnit results) -->
+	
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+	
+	<target name="build">
+		<foreach target="import-xml-message" param="filename">
+			<path>
+				<fileset dir="test-result/" casesensitive="yes">
+					<include name="TEST-*.xml" />
+				</fileset>
+			</path>
+		</foreach>
+	</target>
+
+	<target name="import-xml-message" description="import given filename with teamcity servicemessage to teamcity">
+		<echo message="##teamcity[importData type='junit' path='${filename}' parseOutOfDate='true']" />
+	</target>
+</project>

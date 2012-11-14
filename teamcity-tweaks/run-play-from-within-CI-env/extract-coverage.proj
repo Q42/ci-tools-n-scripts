@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Analyze" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- arguments to be filled in from command line -->
+    <PlayProjectBaseDir Condition="'$(PlayProjectBaseDir)'== ''">$(teamcity_build_workingDir)\</PlayProjectBaseDir>
+  </PropertyGroup>
+  
+  <Import Project="C:\Tools\play-1.2.4\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"/>
+ 
+  <Target Name="Analyze">
+    <XmlRead XPath="coverage/@line-rate" XmlFileName="$(PlayProjectBaseDir)test-result\coverage\coverage.xml">
+      <Output TaskParameter="Value" PropertyName="LinesPercentageCovered" />
+    </XmlRead>
+    <PropertyGroup>
+      <LinesPercentageCovered>$([System.Math]::Round($([MSBuild]::Multiply($(LinesPercentageCovered), 100))))</LinesPercentageCovered>
+    </PropertyGroup>       
+    <Message Text="##teamcity[buildStatisticValue key='CodeCoverageL' value='$(LinesPercentageCovered)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="LinesPercentageCovered: $(LinesPercentageCovered)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>            
+    
+    <XmlRead XPath="coverage/@lines-covered" XmlFileName="$(PlayProjectBaseDir)test-result\coverage\coverage.xml">
+      <Output TaskParameter="Value" PropertyName="LinesNumberCovered" />
+    </XmlRead>    
+    <Message Text="##teamcity[buildStatisticValue key='CodeCoverageAbsLCovered' value='$(LinesNumberCovered)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="LinesNumberCovered: $(LinesNumberCovered)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>                
+
+    <XmlRead XPath="coverage/@lines-covered" XmlFileName="$(PlayProjectBaseDir)test-result\coverage\coverage.xml">
+      <Output TaskParameter="Value" PropertyName="LinesNumbersTouched" />
+    </XmlRead>    
+    <Message Text="##teamcity[buildStatisticValue key='CodeCoverageAbsLTotal' value='$(LinesNumbersTouched)']"  Condition=" '$(TEAMCITY_VERSION)' != '' "/>
+    <Message Text="LinesNumbersTouched: $(LinesNumbersTouched)" Condition=" '$(TEAMCITY_VERSION)' == '' "/>                        
+  </Target>
+</Project>
