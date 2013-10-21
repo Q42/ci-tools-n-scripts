@@ -1,0 +1,44 @@
+From 7e493772702a2234acbd7bb3034b1e0eddcca5df Mon Sep 17 00:00:00 2001
+From: Robert Bakker <notalifeform@gmail.com>
+Date: Sun, 31 Mar 2013 22:24:14 +0200
+Subject: [PATCH] [#943] fix autotest connection refused - carefull not to
+ reintroduce #1222 - implemented proposed fix by Matthias Kurz
+ http://play.lighthouseapp.com/projects/57987/tickets/1222#ticket-1222-10
+
+---
+ framework/pym/play/commands/base.py   | 2 +-
+ framework/src/play/server/Server.java | 5 ++++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/framework/pym/play/commands/base.py b/framework/pym/play/commands/base.py
+index 783000e..04a9a43 100644
+--- a/framework/pym/play/commands/base.py
++++ b/framework/pym/play/commands/base.py
+@@ -250,7 +250,7 @@ def autotest(app, args):
+         line = soutint.readline().strip()
+         if line:
+             print line
+-            if line.find('Go to ') > -1: # This line is written out by the test runner to system.out and is not log file dependent
++            if line.find('Server is up and running') > -1: # This line is written out by Server.java to system.out and is not log file dependent
+                 soutint.close()
+                 break
+ 
+diff --git a/framework/src/play/server/Server.java b/framework/src/play/server/Server.java
+index 78249c2..1bb28b2 100644
+--- a/framework/src/play/server/Server.java
++++ b/framework/src/play/server/Server.java
+@@ -130,7 +130,10 @@ public Server(String[] args) {
+             Logger.error("Could not bind on port " + httpsPort, e);
+             Play.fatalServerErrorOccurred();
+         }
+-
++        if (Play.mode == Mode.DEV) {
++           // print this line to STDOUT - not using logger, so auto test runner will not block if logger is misconfigured (see #1222)     
++           System.out.println("~ Server is up and running");
++	}
+     }
+ 
+     private String getOpt(String[] args, String arg, String defaultValue) {
+-- 
+1.8.4
+

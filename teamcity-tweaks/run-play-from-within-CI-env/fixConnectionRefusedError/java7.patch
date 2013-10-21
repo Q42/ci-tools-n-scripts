@@ -1,0 +1,12 @@
+--- framework/src/play/db/DBPlugin.java.bak	2013-10-21 15:04:53.000000000 +0200
++++ framework/src/play/db/DBPlugin.java	2013-10-21 15:12:18.000000000 +0200
+@@ -336,6 +336,9 @@
+         public boolean jdbcCompliant() {
+             return this.driver.jdbcCompliant();
+         }
++
++        @Override
++        public java.util.logging.Logger getParentLogger() throws java.sql.SQLFeatureNotSupportedException { return null; }
+     }
+ 
+     public static class PlayConnectionCustomizer implements ConnectionCustomizer {
