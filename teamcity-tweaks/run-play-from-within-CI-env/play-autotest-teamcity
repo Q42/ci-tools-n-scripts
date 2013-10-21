@@ -1,6 +1,6 @@
 #!/bin/bash
 
-play auto-test
+/Applications/play-1.2.5.3/play auto-test
 
 if [ -f test-result/result.passed ]
   then
