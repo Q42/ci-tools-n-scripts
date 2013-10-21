@@ -1,0 +1,17 @@
+#!/bin/bash
+
+play auto-test
+
+if [ -f test-result/result.passed ]
+  then
+    echo "Play tests returned .passed file"
+    exit 0
+fi
+if [ -f test-result/result.failed ]
+  then
+    echo "Play tests returned .failed file"
+    exit 0
+fi
+
+echo "Compiling Play Framework project failed! No tests output exists in test-result folder. See build log for details."
+exit 2
